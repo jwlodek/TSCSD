@@ -5,18 +5,20 @@ import socket
 import time
 
 TOLERANCE=0.1
+
+MIN_RAMP_RATE=0.0001
+
 __version__="0.0.1"
 
 
 class Channel:
 
-    def __init__(self, id, rr=1, max_rr=5, min_rr=-5, max_val=100, min_val = 100):
+    def __init__(self, id, rr=1, max_rr=5, max_val=100, min_val = 100):
         self._id = id
         self._at_rest = True
         self._rb = 0
         self._sp = 0
         self._rr = rr
-        self._min_rr = min_rr
         self._max_rr = max_rr
         self._max_val = max_val
         self._min_val = min_val
@@ -51,11 +53,11 @@ class Channel:
 
     def set_rr(self, rr):
         if rr > self._max_rr:
-            self._sp = self._max_rr
-        elif rr < self._min_rr:
-            self._sp = self._min_rr
+            self._rr = self._max_rr
+        elif rr < 0:
+            self._rr = MIN_RAMP_RATE
         else:
-            self._sp = rr
+            self._rr = rr
 
     def get_rr(self):
         return self._rr
@@ -99,19 +101,22 @@ class SimpleDevice:
             "ATSP?": [self.is_chan_at_rest, "Channel Num"],
         }
 
-    def set_chan_sp(self, chan_num, set_point):
-        self._channels[int(chan_num) - 1].set(float(set_point))
         
 
     def get_chan_val(self, chan_num):
         return self._channels[int(chan_num) - 1].read()
-    
+ 
+    def set_chan_sp(self, chan_num, set_point):
+        self._channels[int(chan_num) - 1].set(float(set_point))
+        return self.get_chan_val(chan_num)
+   
     def get_chan_rr(self, chan_num):
         return self._channels[int(chan_num) - 1].get_rr()
     
 
     def set_chan_rr(self, chan_num, rr):
         self._channels[int(chan_num) - 1].set_rr(float(rr))
+        return self.get_chan_rr(chan_num)
     
 
     def is_chan_at_rest(self, chan_num):
@@ -125,12 +130,12 @@ class SimpleDevice:
         print("Shutting down device...")
         for channel in self._channels:
             channel.kill()
-        self._comm_thread.join()
+        
         print("Done.")
 
 
     def identify(self):
-        return f"{self._model} | v{self.__version__}"
+        return f"{self._model} | v{__version__}"
 
     def rec_cmd(self, client_socket):
 
@@ -146,7 +151,10 @@ class SimpleDevice:
                 print(f"Recd {command.strip()} command.")
             except socket.timeout:
                 print("Recd no cmd")
-        return command
+        if command is not None:
+            return command.strip()
+        else:
+            return None
 
     def communicate(self):
         self._socket_conn.bind((self._intf, self._port))
@@ -165,7 +173,10 @@ class SimpleDevice:
         while self._keep_alive:
             command = self.rec_cmd(client_socket)
             if command is not None:
-                self.execute_command(command.split(' '))
+                output = self.execute_command(command.split(' '))
+                if output is not None:
+                    print(output)
+                    client_socket.sendall(str.encode(f"{output}{self._out_term}"))
 
     def execute_command(self, command_as_list):
         base_cmd = command_as_list[0]
@@ -181,14 +192,17 @@ class SimpleDevice:
                 else:
                     output = self._cmd_to_func_map[base_cmd][0](*command_as_list[1:])
                     if output is not None:
-                        print(output)
+                        return output
+        return None
 
     def show_simple_shell(self):
         try:
             while self._keep_alive:
                 cmd = input("> ")
                 cmd_w_args = cmd.split(' ')
-                self.execute_command(cmd_w_args)
+                output = self.execute_command(cmd_w_args)
+                if output is not None:
+                    print(output)
 
         except KeyboardInterrupt:
             self.kill()
