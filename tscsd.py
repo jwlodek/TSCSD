@@ -180,7 +180,7 @@ class SimpleDevice:
         self._socket_conn.listen(1)
         print("Starting simple device...")
         self._socket_conn.settimeout(5.0)
-        client_socket = self.communicatewait_for_conn()
+        client_socket = self.wait_for_conn()
         while self._keep_alive:
             try:
                 command = self.rec_cmd(client_socket)
