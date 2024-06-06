@@ -227,9 +227,12 @@ class SimpleDevice:
         """Function responsible for recieving command over socket connection"""
 
         command = None
-        while self._keep_alive:
+        saw_terminator = False
+        while not saw_terminator and self._keep_alive:
             try:
                 command = client_socket.recv(48).decode('utf-8') # Commands are all short, under 48 chars
+                if self._in_term in str(command):
+                    saw_terminator = True
                 if command == '':
                     raise RuntimeError("socket connection broken")
                 self._logger.debug(f"Recieved {command.strip()} command.")
@@ -290,7 +293,8 @@ class SimpleDevice:
         """Executes the selected command"""
 
         output = None
-        base_cmd = command_as_list[0] # Base command is what we use to find function pointer from dict
+        # Base command is what we use to find function pointer from dict
+        base_cmd = command_as_list[0]
 
         if base_cmd.strip() == "":
             pass # Ignore empty commands, so user can spam enter to get 
