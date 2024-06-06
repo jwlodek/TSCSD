@@ -82,7 +82,8 @@ class Channel:
 class SimpleDevice:
 
     def __init__(self, nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n', log_level = logging.INFO):
-        self._logger = logging.Logger("TSCSD", level=log_level)
+        self._logger = logging.getLogger(name="TSCSD")
+        self._logger.setLevel(log_level)
         self._model = "Simple EPICS Training Device"
         self._socket_conn = None
         self._intf = intf
