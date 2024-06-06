@@ -13,7 +13,7 @@ __version__="0.0.1"
 
 class Channel:
 
-    def __init__(self, id, rr=1, max_rr=5, max_val=100, min_val = 100):
+    def __init__(self, id, rr=1, max_rr=5, max_val=100, min_val = -100):
         self._id = id
         self._at_rest = True
         self._rb = 0
@@ -46,7 +46,7 @@ class Channel:
             # Make sure we don't overshoot our ranges
             if self._rb > self._max_val:
                 self._rb = self._max_val
-            elif self._rb > self._min_val:
+            elif self._rb < self._min_val:
                 self._rb = self._min_val
 
             time.sleep(1)
@@ -81,6 +81,7 @@ class SimpleDevice:
     def __init__(self, nchannels = 5, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n'):
         self._model = "Simple EPICS Training Device"
         self._socket_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket_conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # for quick restarts
         self._intf = intf
         self._port = port
         self._comm_thread = threading.Thread(target=self.communicate)
@@ -108,10 +109,10 @@ class SimpleDevice:
  
     def set_chan_sp(self, chan_num, set_point):
         self._channels[int(chan_num) - 1].set(float(set_point))
-        return self.get_chan_val(chan_num)
+        return f"SP{chan_num}={self._channels[int(chan_num) - 1]._sp}"
    
     def get_chan_rr(self, chan_num):
-        return self._channels[int(chan_num) - 1].get_rr()
+        return f"RR{chan_num}={self._channels[int(chan_num) - 1].get_rr()}"
     
 
     def set_chan_rr(self, chan_num, rr):
