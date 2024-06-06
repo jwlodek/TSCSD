@@ -4,17 +4,19 @@ import threading
 import socket
 import time
 
+import logging
+
 TOLERANCE=0.1
 
 MIN_RAMP_RATE=0.0001
 
 __version__="0.0.1"
 
-
 class Channel:
 
-    def __init__(self, id, rr=1, max_rr=5, max_val=100, min_val = -100):
+    def __init__(self, id, logger, rr=1, max_rr=5, max_val=100, min_val = -100):
         self._id = id
+        self._logger = logger
         self._at_rest = True
         self._rb = 0
         self._sp = 0
@@ -28,9 +30,9 @@ class Channel:
 
     def kill(self):
         self._keep_alive = False
-        print(f"Shutting down channel {self._id}...")
+        self._logger.info(f"Shutting down channel {self._id}...")
         self._channel_thread.join()
-        print(f"Channel {self._id} shut down.")
+        self._logger.info(f"Channel {self._id} shut down.")
 
     def run(self):
         while self._keep_alive:
@@ -79,6 +81,7 @@ class Channel:
 class SimpleDevice:
 
     def __init__(self, nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n'):
+        self._logger = logging.Logger("TSCSD", level=logging.DEBUG)
         self._model = "Simple EPICS Training Device"
         self._socket_conn = None
         self._intf = intf
@@ -89,7 +92,7 @@ class SimpleDevice:
         self._in_term = in_term
         self._out_term = out_term
         for i in range(nchannels):
-            self._channels.append(Channel(i))
+            self._channels.append(Channel(i, self._logger))
 
         self._cmd_to_func_map = {
             "KILL": [self.kill],
@@ -100,7 +103,8 @@ class SimpleDevice:
             "RR?": [self.get_chan_rr, "Channel Num"],
             "RR":  [self.set_chan_rr, "Channel Num", "Ramp Rate"],
             "ATSP?": [self.is_chan_at_rest, "Channel Num"],
-            "STOP": [self.stop_channel, "Channel Num"]
+            "STOP": [self.stop_channel, "Channel Num"],
+            "DEBUG": [self.adjust_log_level, "Log Level"],
         }
 
     def stop_channel(self, chan_num):
@@ -117,7 +121,14 @@ class SimpleDevice:
    
     def get_chan_rr(self, chan_num):
         return f"RR{chan_num}={self._channels[int(chan_num) - 1].get_rr()}"
-    
+
+
+    def adjust_log_level(self, log_level):
+        if int(log_level) in range(0, 6):
+            self._logger.setLevel(int(log_level) * 10) # Logging log levels go in increments of 10 from 0 to 50
+            self._logger.info("Updated log level")
+        else:
+            self._logger.error(f"Log level {log_level} invalid!")
 
     def set_chan_rr(self, chan_num, rr):
         self._channels[int(chan_num) - 1].set_rr(float(rr))
@@ -132,11 +143,11 @@ class SimpleDevice:
 
     def kill(self):
         self._keep_alive = False
-        print("Shutting down device...")
+        self._logger.info("Shutting down device...")
         for channel in self._channels:
             channel.kill()
         
-        print("Done.")
+        self._logger.info("Done.")
 
 
     def identify(self):
@@ -153,9 +164,9 @@ class SimpleDevice:
                     saw_terminator = True
                 if command == '':
                     raise RuntimeError("socket connection broken")
-                print(f"Recd {command.strip()} command.")
+                self._logger.debug(f"Recd {command.strip()} command.")
             except socket.timeout:
-                print("Recd no cmd")
+                self._logger.debug("Recd no cmd")
         if command is not None:
             return command.strip()
         else:
@@ -164,7 +175,7 @@ class SimpleDevice:
 
     def wait_for_conn(self):
         if self._socket_conn is not None:
-            print("Closing socket, making new one...")
+            self._logger.info("Closing socket, making new one...")
             self._socket_conn.close()
         self._socket_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket_conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # for quick restarts
@@ -176,14 +187,14 @@ class SimpleDevice:
             try:
                 (client_socket, address) = self._socket_conn.accept()
                 client_socket.settimeout(5.0)
-                print(f"Connected to client w/ address {address}...")
+                self._logger.info(f"Connected to client w/ address {address}...")
                 connected = True
                 return client_socket
             except socket.timeout:
                 pass
 
     def communicate(self):
-        print("Starting simple device...")
+        self._logger.info("Starting simple device...")
         client_socket = self.wait_for_conn()
         while self._keep_alive:
             try:
@@ -191,10 +202,10 @@ class SimpleDevice:
                 if command is not None:
                     output = self.execute_command(command.split(' '))
                     if output is not None:
-                        print(output)
+                        self._logger.debug(output)
                         client_socket.sendall(str.encode(f"{output}{self._out_term}"))
             except RuntimeError as e:
-                print("Socket disconnected. Waiting for new connection...")
+                self._logger.error("Socket disconnected. Waiting for new connection...")
                 client_socket = self.wait_for_conn()
 
     def execute_command(self, command_as_list):
@@ -203,11 +214,11 @@ class SimpleDevice:
             pass # Ignore empty commands
         else:
             if base_cmd not in self._cmd_to_func_map:
-                print(f"Command {base_cmd} not supported!")
+                self._logger.error(f"Command {base_cmd} not supported!")
             else:
                 cmd_func_sig = self._cmd_to_func_map[command_as_list[0]]
                 if len(cmd_func_sig) - 1 != len(command_as_list) - 1:
-                    print(f"Command {command_as_list[0]} requires {len(cmd_func_sig) - 1} arguments!")
+                    self._logger.error(f"Command {command_as_list[0]} requires {len(cmd_func_sig) - 1} arguments!")
                 else:
                     output = self._cmd_to_func_map[base_cmd][0](*command_as_list[1:])
                     if output is not None:
@@ -221,7 +232,7 @@ class SimpleDevice:
                 cmd_w_args = cmd.split(' ')
                 output = self.execute_command(cmd_w_args)
                 if output is not None:
-                    print(output)
+                    self._logger.info(output)
 
         except KeyboardInterrupt:
             self.kill()
