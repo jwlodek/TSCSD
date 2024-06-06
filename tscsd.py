@@ -6,6 +6,7 @@ import socket
 import time
 
 import logging
+logging.basicConfig()
 
 TOLERANCE=0.1
 
@@ -166,9 +167,9 @@ class SimpleDevice:
                     saw_terminator = True
                 if command == '':
                     raise RuntimeError("socket connection broken")
-                self._logger.debug(f"Recd {command.strip()} command.")
+                self._logger.debug(f"Recieved {command.strip()} command.")
             except socket.timeout:
-                self._logger.debug("Recd no cmd")
+                pass
         if command is not None:
             return command.strip()
         else:
