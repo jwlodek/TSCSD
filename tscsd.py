@@ -241,7 +241,7 @@ class SimpleDevice:
 def main():
     parser = argparse.ArgumentParser("Training Simple Control Systems Device")
     parser.add_argument("-i", "--intf", default="127.0.0.1", help="The network interface on which the socket should bind")
-    parser.add_argument("-p", "--port", default="8888", help="Port number for socket to bind to")
+    parser.add_argument("-p", "--port", default=8888, type=int, help="Port number for socket to bind to")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable full debug logging")
     parser.add_argument("-n", "--nchannels", default=4, type=int, help="Number of simulated channels")
     args = parser.parse_args()
