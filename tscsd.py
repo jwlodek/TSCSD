@@ -5,7 +5,10 @@ import threading
 import socket
 import time
 
-import readline
+from sys import platform
+
+if platform != "win32":
+    import readline
 
 # Configure logging
 import logging
@@ -37,6 +40,7 @@ class Channel:
         self._channel_thread = threading.Thread(target=self.run) # Create seperate thread for simulation
         self._channel_thread.start()
 
+
     def kill(self):
         """Cleans up simulation thread"""
 
@@ -44,6 +48,7 @@ class Channel:
         self._logger.info(f"Shutting down channel {self._id}...")
         self._channel_thread.join()
         self._logger.info(f"Channel {self._id} shut down.")
+
 
     def run(self):
         """Simulation loop function run in seperate thread"""
@@ -207,6 +212,7 @@ class SimpleDevice:
 
         self._comm_thread.start()
 
+
     def kill(self):
         """Shut down all channel threads and stop main comms thread"""
         self._keep_alive = False
@@ -233,7 +239,7 @@ class SimpleDevice:
             return command.strip()
         else:
             return None
-        
+
 
     def wait_for_conn(self):
         """Function that creates our socket, and waits for connection"""
@@ -318,6 +324,7 @@ class SimpleDevice:
 
         except KeyboardInterrupt:
             self.kill()
+
 
 def main():
     parser = argparse.ArgumentParser("Training Simple Control Systems Device")
