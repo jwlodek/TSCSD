@@ -280,7 +280,6 @@ class SimpleDevice:
                 if command is not None:
                     output = self.execute_command(command.split(' '))
                     if output is not None:
-                        self._logger.debug(output)
                         client_socket.sendall(str.encode(f"{output}{self._out_term}"))
             except RuntimeError as e:
                 self._logger.error("Socket disconnected. Waiting for new connection...")
@@ -290,8 +289,9 @@ class SimpleDevice:
     def execute_command(self, command_as_list):
         """Executes the selected command"""
 
+        output = None
         base_cmd = command_as_list[0] # Base command is what we use to find function pointer from dict
-        
+
         if base_cmd.strip() == "":
             pass # Ignore empty commands, so user can spam enter to get 
         else:
@@ -304,11 +304,11 @@ class SimpleDevice:
                 else:
                     try:
                         output = self._cmd_to_func_map[base_cmd][0](*command_as_list[1:]) # Run command with args
+                        self._logger.debug(output)
                     except Exception as e:
                         self._logger.error(f"Failed to exectue {base_cmd} command! - {str(e)}")
-                    if output is not None:
-                        return output
-        return None
+
+        return output
 
 
     def show_simple_shell(self):
