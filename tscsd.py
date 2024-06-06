@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import threading
 import socket
 import time
@@ -80,8 +81,8 @@ class Channel:
 
 class SimpleDevice:
 
-    def __init__(self, nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n'):
-        self._logger = logging.Logger("TSCSD", level=logging.DEBUG)
+    def __init__(self, nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n', log_level = logging.INFO):
+        self._logger = logging.Logger("TSCSD", level=log_level)
         self._model = "Simple EPICS Training Device"
         self._socket_conn = None
         self._intf = intf
@@ -237,7 +238,20 @@ class SimpleDevice:
         except KeyboardInterrupt:
             self.kill()
 
-if __name__ == "__main__":
-    sd = SimpleDevice()
+def main():
+    parser = argparse.ArgumentParser("Training Simple Control Systems Device")
+    parser.add_argument("-i", "--intf", default="127.0.0.1", help="The network interface on which the socket should bind")
+    parser.add_argument("-p", "--port", default="8888", help="Port number for socket to bind to")
+    parser.add_argument("-d", "--debug", action="store_true", help="Enable full debug logging")
+    parser.add_argument("-n", "--nchannels", default=4, type=int, help="Number of simulated channels")
+    args = parser.parse_args()
+    log_level = logging.INFO
+    if args.debug:
+        log_level = logging.DEBUG
+    sd = SimpleDevice(intf=args.intf, port=args.port, nchannels=args.nchannels, log_level=log_level)
     sd.power_on()
     sd.show_simple_shell()
+
+
+if __name__ == "__main__":
+    main()
