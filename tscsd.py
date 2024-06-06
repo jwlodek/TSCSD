@@ -159,8 +159,10 @@ class SimpleDevice:
     def stop_channel(self, chan_num):
         """Sets setpoint to current channel readback"""
 
-        rb = self.get_chan_val(chan_num)
-        self._channels[int(chan_num) - 1].set(float(rb))
+        if self.is_chan_at_rest(chan_num) == "0":
+            self._logger.debug(f"Stopping channel {chan_num}")
+            rb = self.get_chan_val(chan_num)
+            self._channels[int(chan_num) - 1].set(rb)
         return self.is_chan_at_rest(chan_num)
 
 
