@@ -80,8 +80,7 @@ class SimpleDevice:
 
     def __init__(self, nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n'):
         self._model = "Simple EPICS Training Device"
-        self._socket_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socket_conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # for quick restarts
+        self._socket_conn = None
         self._intf = intf
         self._port = port
         self._comm_thread = threading.Thread(target=self.communicate)
@@ -164,6 +163,15 @@ class SimpleDevice:
         
 
     def wait_for_conn(self):
+        if self._socket_conn is not None:
+            print("Closing socket, making new one...")
+            self._socket_conn.close()
+        self._socket_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket_conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # for quick restarts
+        self._socket_conn.bind((self._intf, self._port))
+        self._socket_conn.listen(1)
+        print("Starting simple device...")
+        self._socket_conn.settimeout(5.0)
         connected = False
         while self._keep_alive and not connected:
             try:
@@ -176,10 +184,7 @@ class SimpleDevice:
                 pass
 
     def communicate(self):
-        self._socket_conn.bind((self._intf, self._port))
-        self._socket_conn.listen(1)
-        print("Starting simple device...")
-        self._socket_conn.settimeout(5.0)
+
         client_socket = self.wait_for_conn()
         while self._keep_alive:
             try:
@@ -189,7 +194,7 @@ class SimpleDevice:
                     if output is not None:
                         print(output)
                         client_socket.sendall(str.encode(f"{output}{self._out_term}"))
-            except RuntimeError:
+            except RuntimeError as e:
                 print("Socket disconnected. Waiting for new connection...")
                 self.wait_for_conn()
 
