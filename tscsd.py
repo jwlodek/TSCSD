@@ -78,7 +78,7 @@ class Channel:
 
 class SimpleDevice:
 
-    def __init__(self, nchannels = 5, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n'):
+    def __init__(self, nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n'):
         self._model = "Simple EPICS Training Device"
         self._socket_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket_conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # for quick restarts
@@ -95,18 +95,23 @@ class SimpleDevice:
         self._cmd_to_func_map = {
             "KILL": [self.kill],
             "*IDN?": [self.identify],
+            "NCHAN?": [lambda : str(len(self._channels))],
             "READ?": [self.get_chan_val, "Channel Num"],
             "SP": [self.set_chan_sp, "Channel Num", "Set Point"],
             "RR?": [self.get_chan_rr, "Channel Num"],
             "RR":  [self.set_chan_rr, "Channel Num", "Ramp Rate"],
             "ATSP?": [self.is_chan_at_rest, "Channel Num"],
+            "STOP": [self.stop_channel, "Channel Num"]
         }
 
-        
+    def stop_channel(self, chan_num):
+        rb = self.get_chan_val(chan_num)
+        self._channels[int(chan_num) - 1].set(float(rb))
+        return self.is_chan_at_rest(chan_num)
 
     def get_chan_val(self, chan_num):
         return self._channels[int(chan_num) - 1].read()
- 
+
     def set_chan_sp(self, chan_num, set_point):
         self._channels[int(chan_num) - 1].set(float(set_point))
         return f"SP{chan_num}={self._channels[int(chan_num) - 1]._sp}"
