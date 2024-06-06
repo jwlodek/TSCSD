@@ -161,12 +161,9 @@ class SimpleDevice:
             return command.strip()
         else:
             return None
+        
 
-    def communicate(self):
-        self._socket_conn.bind((self._intf, self._port))
-        self._socket_conn.listen(1)
-        print("Starting simple device...")
-        self._socket_conn.settimeout(5.0)
+    def wait_for_conn(self):
         connected = False
         while self._keep_alive and not connected:
             try:
@@ -174,15 +171,27 @@ class SimpleDevice:
                 client_socket.settimeout(5.0)
                 print(f"Connected to client w/ address {address}...")
                 connected = True
+                return client_socket
             except socket.timeout:
                 pass
+
+    def communicate(self):
+        self._socket_conn.bind((self._intf, self._port))
+        self._socket_conn.listen(1)
+        print("Starting simple device...")
+        self._socket_conn.settimeout(5.0)
+        client_socket = self.communicatewait_for_conn()
         while self._keep_alive:
-            command = self.rec_cmd(client_socket)
-            if command is not None:
-                output = self.execute_command(command.split(' '))
-                if output is not None:
-                    print(output)
-                    client_socket.sendall(str.encode(f"{output}{self._out_term}"))
+            try:
+                command = self.rec_cmd(client_socket)
+                if command is not None:
+                    output = self.execute_command(command.split(' '))
+                    if output is not None:
+                        print(output)
+                        client_socket.sendall(str.encode(f"{output}{self._out_term}"))
+            except RuntimeError:
+                print("Socket disconnected. Waiting for new connection...")
+                self.wait_for_conn()
 
     def execute_command(self, command_as_list):
         base_cmd = command_as_list[0]
