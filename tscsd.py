@@ -118,13 +118,13 @@ class Channel:
 class SimpleDevice:
     """Class that simulates a simple serial device"""
 
-    def __init__(self, nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n', log_level = logging.INFO):
+    def __init__(self, model="EPICS Trainer", nchannels = 4, intf='127.0.0.1', port=8888, in_term='\n', out_term='\n', log_level = logging.INFO):
 
         # Configure logger
         self._logger = logging.getLogger(name="TSCSD")
         self._logger.setLevel(log_level)
 
-        self._model = "Simple EPICS Training Device"
+        self._model = model
         self._socket_conn = None
         self._intf = intf
         self._port = port
@@ -338,13 +338,14 @@ def main():
     parser.add_argument("-p", "--port", default=8888, type=int, help="Port number for socket to bind to")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable full debug logging")
     parser.add_argument("-n", "--nchannels", default=4, type=int, help="Number of simulated channels")
+    parser.add_argument("-m", "--model", default="EPICS Trainer", help="Model name for the simulation")
     args = parser.parse_args()
 
     log_level = logging.INFO
     if args.debug:
         log_level = logging.DEBUG
 
-    sd = SimpleDevice(intf=args.intf, port=args.port, nchannels=args.nchannels, log_level=log_level)
+    sd = SimpleDevice(model=args.model, intf=args.intf, port=args.port, nchannels=args.nchannels, log_level=log_level)
     sd.power_on()
     sd.show_simple_shell()
 
