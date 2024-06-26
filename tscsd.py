@@ -30,16 +30,39 @@ class Channel:
         self._id = id
         self._logger = logger
         self._at_rest = True
+
+        self._kp = 1
+        self._ki = 0
+        self._kd = 0
+        self._accumulator = 0
+
         self._rb = 0
         self._sp = 0
+
+        self._current_rr = 0
         self._rr = rr
         self._max_rr = max_rr
+
+        self._poll_rate = 1
+
         self._max_val = max_val
         self._min_val = min_val
         self._keep_alive = True
         self._channel_thread = threading.Thread(target=self.run) # Create seperate thread for simulation
         self._channel_thread.start()
 
+
+    def adjust_current_rr(self, feedback):
+        error = self._sp - feedback
+        self._accumulator += error
+        self._current_rr = self._kp * error + self._ki * self._accumulator + self._kd * (feedback - self._rb) / (1 / self._poll_rate)
+
+        if self._current_rr > self._rr:
+            self._current_rr = self._rr
+        elif self._current_rr < - self._rr:
+            self._current_rr = - self._rr
+
+        self._rb = feedback
 
     def kill(self):
         """Cleans up simulation thread"""
@@ -57,11 +80,7 @@ class Channel:
 
             # Check if our readback value is within tolerance of setpoint
             if abs(self._sp - self._rb) > TOLERANCE:
-                self._at_rest = False
-                if self._sp > self._rb:
-                    self._rb += self._rr
-                else:
-                    self._rb -= self._rr
+                self.adjust_current_rr(self._rb + self._current_rr)
             else:
                 self._at_rest = True
 
@@ -72,7 +91,7 @@ class Channel:
                 self._rb = self._min_val
 
             # Poll rate
-            time.sleep(1)
+            time.sleep(self._poll_rate)
 
 
     def set_rr(self, rr):
@@ -89,7 +108,7 @@ class Channel:
     def get_rr(self):
         """Returns current ramp rate"""
 
-        return self._rr
+        return self._current_rr
 
 
     def is_at_rest(self):
@@ -153,8 +172,32 @@ class SimpleDevice:
             "ATSP?": [self.is_chan_at_rest, "Channel Num"],
             "STOP": [self.stop_channel, "Channel Num"],
             "DEBUG": [self.adjust_log_level, "Log Level"],
+            "PID?": [self.get_chan_pid, "Channel Num"],
+            "SETP": [self.set_chan_p, "Channel Num", "P"],
+            "SETI": [self.set_chan_i, "Channel Num", "I"],
+            "SETD": [self.set_chan_d, "Channel Num", "D"],
         }
 
+
+    def get_chan_pid(self, chan_num):
+        chan = self._channels[int(chan_num) - 1]
+        return f"P:{chan._kp},I:{chan._ki},D:{chan._kd}"
+
+    def set_chan_p(self, chan_num, p):
+        chan = self._channels[int(chan_num) - 1]
+        chan._kp = p
+        return self.get_chan_pid(chan_num)
+
+
+    def set_chan_i(self, chan_num, i):
+        chan = self._channels[int(chan_num) - 1]
+        chan._ki = i
+        return self.get_chan_pid(chan_num)
+
+    def set_chan_d(self, chan_num, d):
+        chan = self._channels[int(chan_num) - 1]
+        chan._kd = d
+        return self.get_chan_pid(chan_num)
 
     def stop_channel(self, chan_num):
         """Sets setpoint to current channel readback"""
