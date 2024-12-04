@@ -1,0 +1,14 @@
+file "$(TSCSD)/db/tscsd-device.template"
+{
+pattern { P,     R,       PORT}
+        {"DEV:", "TSCSD1:", "TSCSD1"}
+}
+
+file "$(TSCSD)/db/tscsd-chan.template"
+{
+pattern { P,     R,           PORT,  CHAN}
+        {"DEV:", "TSCSD1:", "TSCSD1", "1"}
+        {"DEV:", "TSCSD1:", "TSCSD1", "2"}
+        {"DEV:", "TSCSD1:", "TSCSD1", "3"}
+        {"DEV:", "TSCSD1:", "TSCSD1", "4"}
+}

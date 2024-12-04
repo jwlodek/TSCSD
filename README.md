@@ -2,7 +2,37 @@
 
 **Training Simple Control System Device**
 
-Simple python program that simulates a device with an ASCII command set that can be used for EPICS/StreamDevice training purposes.
+A simple simulation of a serial device, along with a corresponding EPICS IOC, phoebus screens, and ophyd/bluesky code, meant to be used as a training/testing utility for people new to this technology stack.
+
+### Getting Started
+
+To begin, clone this repository to your local system:
+
+```Bash
+git clone https://github.com/jwlodek/TSCSD
+cd TSCSD
+```
+
+Next, create a python virtual environment, and install necessary packages. You can use any python environment you wish. Requires at least python 3.9:
+
+```
+mkdir venv
+python3.11 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+```
+
+From now on, all commands should be run in a shell with the environment activated.
+
+Next, use the provided `Makefile` to create a local installation of the `phoebus` control system display manager:
+
+```
+make
+```
+
+This should install a portable version of the Java Runtime 17 in the `phoebus` folder, along with a pre-built version of the display manager.
+
+At this point, you are ready to start the simulation.
 
 ### Starting the Simulation
 

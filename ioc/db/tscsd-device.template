@@ -1,0 +1,15 @@
+record(stringin, "$(P)$(R)IDN") {
+    field(DESC, "Device Description")
+    field(DTYP, "stream")
+    field(INP,  "@tscsd.proto getDeviceInfo $(PORT)")
+    field(PINI, "YES")
+    field(SCAN, "Passive")
+}
+
+record(ai, "$(P)$(R)NCHANS"){
+    field(DTYP, "stream")
+    field(INP, "@tscsd.proto getNumChannels $(PORT)")
+    field(PINI, "YES")
+    field(EGU, "channels")
+    field(SCAN, "Passive")
+}

@@ -1,0 +1,48 @@
+record(ai, "$(P)$(R)$(CHAN):RR") {
+    field(DESC, "Ramp Rate")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    field(PREC, "3")
+    field(INP,  "@tscsd.proto getRampRate($(CHAN)) $(PORT)")
+}
+
+record(ai, "$(P)$(R)$(CHAN):RB") {
+    field(DESC, "Value")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    field(PREC, "3")
+    field(INP,  "@tscsd.proto getReadback($(CHAN)) $(PORT)")
+}
+
+record(bi, "$(P)$(R)$(CHAN):ATSP") {
+    field(DESC, "Value")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    field(ZNAM, "Moving")
+    field(ONAM, "At Setpoint")
+    field(VAL, "1")
+    field(INP,  "@tscsd.proto isAtRest($(CHAN)) $(PORT)")
+}
+
+record(ao, "$(P)$(R)$(CHAN):RR:SET") {
+    field(DESC, "Set ramp rate")
+    field(PREC, "3")
+    field(EGU,  "Units")
+    field(DTYP, "stream")
+    field(OUT, "@tscsd.proto setRampRate($(CHAN)) $(PORT)")
+}
+
+record(ao, "$(P)$(R)$(CHAN):SP:SET") {
+    field(DESC, "Set target set point")
+    field(PREC, "3")
+    field(EGU,  "Units")
+    field(DTYP, "stream")
+    field(OUT, "@tscsd.proto updateSP($(CHAN)) $(PORT)")
+}
+
+record(bo, "$(P)$(R)$(CHAN):STOP") {
+    field(DESC, "Stop channel")
+    field(DTYP, "stream")
+    field(VAL, "0")
+    field(OUT,  "@tscsd.proto stopChan($(CHAN)) $(PORT)")
+}

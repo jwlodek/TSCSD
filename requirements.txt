@@ -1,1 +1,7 @@
-cookiecutter
+tiled[client]
+tiled[server]
+bluesky
+ophyd
+ophyd-async[ca]
+ipython
+matplotlib

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-12-04 12:03:17 by jwlodek-->
+<display version="2.0.0">
+  <name>TSCSD</name>
+  <macros>
+    <Dev>TSCSD1:</Dev>
+    <Sys>DEV:</Sys>
+  </macros>
+  <width>700</width>
+  <height>650</height>
+  <background_color>
+    <color red="240" green="240" blue="240">
+    </color>
+  </background_color>
+  <actions>
+  </actions>
+  <grid_step_x>6</grid_step_x>
+  <grid_step_y>6</grid_step_y>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="open_display">
+        <file>asynRecord.opi</file>
+        <macros>
+          <P>$(Sys)$(Dev)</P>
+          <R>Asyn</R>
+        </macros>
+        <target>tab</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>Asyn</text>
+    <x>432</x>
+    <y>600</y>
+    <width>151</width>
+    <height>40</height>
+    <background_color>
+      <color red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle</name>
+    <macros>
+      <pv_name></pv_name>
+    </macros>
+    <x>6</x>
+    <y>18</y>
+    <width>583</width>
+    <height>46</height>
+    <line_width>0</line_width>
+    <line_color>
+      <color red="0" green="128" blue="255">
+      </color>
+    </line_color>
+    <actions>
+    </actions>
+    <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>$(Sys)$(Dev)IDN</pv_name>
+    <x>17</x>
+    <y>31</y>
+    <width>349</width>
+    <background_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+    <border_color>
+      <color red="0" green="128" blue="255">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>$(Sys)$(Dev)NCHANS</pv_name>
+    <x>484</x>
+    <y>31</y>
+    <background_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+    <border_color>
+      <color red="0" green="128" blue="255">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display</name>
+    <macros>
+      <CHAN>1</CHAN>
+    </macros>
+    <file>tscsd-chan.bob</file>
+    <x>6</x>
+    <y>78</y>
+    <width>288</width>
+    <height>235</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_1</name>
+    <macros>
+      <CHAN>2</CHAN>
+    </macros>
+    <file>tscsd-chan.bob</file>
+    <x>306</x>
+    <y>78</y>
+    <width>288</width>
+    <height>235</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_2</name>
+    <macros>
+      <CHAN>3</CHAN>
+    </macros>
+    <file>tscsd-chan.bob</file>
+    <x>6</x>
+    <y>324</y>
+    <width>288</width>
+    <height>235</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_3</name>
+    <macros>
+      <CHAN>4</CHAN>
+    </macros>
+    <file>tscsd-chan.bob</file>
+    <x>306</x>
+    <y>324</y>
+    <width>288</width>
+    <height>235</height>
+    <resize>2</resize>
+  </widget>
+</display>

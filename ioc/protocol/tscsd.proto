@@ -1,0 +1,52 @@
+Terminator = LF;
+InTerminator = LF;
+
+getDeviceInfo {
+    wait 50;
+    ExtraInput=Ignore;
+    out "*IDN?";
+    in "%40c";
+}
+
+getNumChannels {
+    wait 50;
+    ExtraInput=Ignore;
+    out "NCHAN?";
+    in "%d";
+}
+
+getRampRate {
+    wait 50;
+    ExtraInput=Ignore;
+    out "RR? \$1";
+    in "RR\$1=%f";
+}
+
+setRampRate {
+    out "RR \$1 %f";
+    in "RR\$1=%f";
+}
+
+getReadback {
+    wait 50;
+    ExtraInput=Ignore;
+    out "READ? \$1";
+    in "%f";
+}
+
+updateSP {
+    out "SP \$1 %f";
+    in "SP\$1=%f";
+}
+
+isAtRest {
+    wait 50;
+    ExtraInput=Ignore;
+    out "ATSP? \$1";
+    in "%d";
+}
+
+stopChan {
+    ExtraInput=Ignore;
+    out "STOP \$1";
+}
