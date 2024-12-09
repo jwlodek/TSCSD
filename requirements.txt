@@ -5,3 +5,4 @@ ophyd
 ophyd-async[ca]
 ipython
 matplotlib
+pyepics
