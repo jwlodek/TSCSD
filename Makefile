@@ -1,6 +1,11 @@
-.PHONY: all phoebus venv clean
+.PHONY: all phoebus uv clean
 
-all: phoebus venv
+all: uv phoebus
+
+uv:
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+	uv venv
+	uv pip sync requirements.txt
 
 phoebus:
 	mkdir -p phoebus
@@ -18,10 +23,6 @@ phoebus:
 	rm ./phoebus/Phoebus-4.7.3-linux.tar.gz
 	rmdir ./phoebus/product-4.7.3
 
-venv:
-	mkdir -p venv
-	python3 -m venv venv
-	venv/bin/pip install -r requirements.txt
 clean:
 	rm -rf phoebus
 	rm -rf venv
