@@ -59,6 +59,8 @@ class Channel:
     def adjust_current_rr(self, feedback: float) -> None:
         error = self._sp - feedback
         self._accumulator += error
+        print(f"Error: {error} {type(error)}, Accumulator: {self._accumulator} {type(self._accumulator)}, Feedback: {feedback} {type(feedback)}, RB: {self._rb} {type(self._rb)}")
+        print(f"PID Coefficients: P: {self._kp} {type(self._kp)}, I: {self._ki} {type(self._ki)}, D: {self._kd} {type(self._kd)}")
         self._current_rr = self._kp * error + self._ki * self._accumulator + self._kd * (feedback - self._rb) / (1 / self._poll_rate)
 
         if self._current_rr > self._rr:
@@ -202,9 +204,9 @@ class SimpleDevice:
 
     def set_chan_pid(self, chan_num: int, p: float, i: float, d: float) -> str:
         chan = self._channels[int(chan_num) - 1]
-        chan._kp = p
-        chan._ki = i
-        chan._kd = d
+        chan._kp = float(p)
+        chan._ki = float(i)
+        chan._kd = float(d)
         return self.get_chan_pid(chan_num)
 
 
